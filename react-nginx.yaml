@@ -82,6 +82,8 @@ objects:
   kind: BuildConfig
   metadata:
     name: react-web-app-builder-${APP_NAME}
+  labels:
+    dtag: ${APP_NAME}
   spec:
     output:
       to:
@@ -120,6 +122,8 @@ objects:
   kind: BuildConfig
   metadata:
     name: static-web-app-running-on-nginx-${APP_NAME}
+  labels:
+    dtag: ${APP_NAME}
   spec:
     output:
       to:
@@ -162,6 +166,7 @@ objects:
   metadata:
     labels:
       app: react-web-app-${APP_NAME}
+      dtag: ${APP_NAME}
     name: react-web-app-${APP_NAME}
   spec:
     replicas: 1
@@ -208,6 +213,7 @@ objects:
   metadata:
     labels:
       app: react-web-app-${APP_NAME}
+      dtag: ${APP_NAME}
     name: react-web-app-${APP_NAME}
   spec:
     ports:
@@ -220,6 +226,7 @@ objects:
   metadata:
     labels:
       app: react-web-app-${APP_NAME}
+      dtag: ${APP_NAME}
     name: react-web-app-${APP_NAME}
   spec:
     port:
