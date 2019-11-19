@@ -59,6 +59,8 @@ objects:
   kind: ImageStream
   metadata:
     name: static-web-app-running-on-nginx-${APP_NAME}
+    labels:
+      dtag: ${APP_NAME}
   spec: {}
 - apiVersion: v1
   kind: ImageStream
