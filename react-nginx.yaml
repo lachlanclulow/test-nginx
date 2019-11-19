@@ -13,8 +13,9 @@ parameters:
   - name: APP_NAME
     description: The name of the react application
     displayName: Application Name
-    value: nginx-example
     required: true
+    from: '[a-zA-Z0-9]{8}'
+    generate: expression
   - name: SOURCE_REPOSITORY_URL
     description: The source URL for the application
     displayName: Source URL
@@ -50,17 +51,17 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: react-web-app-builder
+    name: react-web-app-builder-${APP_NAME}
   spec: {}
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: static-web-app-running-on-nginx
+    name: static-web-app-running-on-nginx-${APP_NAME}
   spec: {}
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: web-app-s2i-image
+    name: web-app-s2i-image-${APP_NAME}
   spec:
     tags:
     - name: latest
@@ -70,7 +71,7 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: nginx-image-runtime
+    name: nginx-image-runtime-${APP_NAME}
   spec:
     tags:
     - name: latest
@@ -80,12 +81,12 @@ objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    name: react-web-app-builder
+    name: react-web-app-builder-${APP_NAME}
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: react-web-app-builder:latest
+        name: react-web-app-builder-${APP_NAME}:latest
     postCommit: {}
     resources: {}
     source:
@@ -103,7 +104,7 @@ objects:
             value: ${OUTPUT_DIR}
         from:
           kind: ImageStreamTag
-          name: web-app-s2i-image:latest
+          name: web-app-s2i-image-${APP_NAME}:latest
         incremental: true
       type: Source
     triggers:
@@ -118,12 +119,12 @@ objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    name: static-web-app-running-on-nginx
+    name: static-web-app-running-on-nginx-${APP_NAME}
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: static-web-app-running-on-nginx:latest
+        name: static-web-app-running-on-nginx-${APP_NAME}:latest
     postCommit: {}
     resources: {}
     source:
@@ -131,7 +132,7 @@ objects:
       images:
         - from:
             kind: ImageStreamTag
-            name: react-web-app-builder:latest
+            name: react-web-app-builder-${APP_NAME}:latest
           paths:
             - destinationDir: .
               sourcePath: /opt/app-root/output/.
@@ -139,7 +140,7 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: nginx-image-runtime:latest
+          name: nginx-image-runtime-${APP_NAME}:latest
         incremental: true
       type: Source
     triggers:
@@ -153,20 +154,20 @@ objects:
       imageChange:
         from:
           kind: ImageStreamTag
-          name: react-web-app-builder:latest
+          name: react-web-app-builder-${APP_NAME}:latest
   status:
     lastVersion: 0
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: react-web-app
-    name: react-web-app
+      app: react-web-app-${APP_NAME}
+    name: react-web-app-${APP_NAME}
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
-      app: react-web-app
+      app: react-web-app-${APP_NAME}
     strategy:
       rollingParams:
         timeoutSeconds: 3600
@@ -174,7 +175,7 @@ objects:
     template:
       metadata:
         labels:
-          app: react-web-app
+          app: react-web-app-${APP_NAME}
       spec:
         containers:
         - env:
@@ -182,47 +183,49 @@ objects:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: static-web-app-running-on-nginx
+          image: static-web-app-running-on-nginx-${APP_NAME}
           imagePullPolicy: IfNotPresent
-          name: static-web-app-running-on-nginx
+          name: static-web-app-running-on-nginx-${APP_NAME}
           ports:
           - containerPort: 8080
             name: http
             protocol: TCP
       metadata:
         labels:
-          app: react-web-app
+          app: react-web-app-${APP_NAME}
     triggers:
       - type: ConfigChange
       - type: ImageChange
         imageChangeParams:
           automatic: true
           containerNames:
-            - static-web-app-running-on-nginx
+            - static-web-app-running-on-nginx-${APP_NAME}
           from:
             kind: ImageStreamTag
-            name: 'static-web-app-running-on-nginx:latest'
+            name: 'static-web-app-running-on-nginx-${APP_NAME}:latest'
 - apiVersion: v1
   kind: Service
   metadata:
     labels:
-      app: react-web-app
-    name: react-web-app
+      app: react-web-app-${APP_NAME}
+    name: react-web-app-${APP_NAME}
   spec:
     ports:
     - name: http
       port: 8080
     selector:
-      app: react-web-app
+      app: react-web-app-${APP_NAME}
 - apiVersion: v1
   kind: Route
   metadata:
     labels:
-      app: react-web-app
-    name: react-web-app
+      app: react-web-app-${APP_NAME}
+    name: react-web-app-${APP_NAME}
   spec:
     port:
       targetPort: 8080
+    tls:
+      termination: edge
     to:
       kind: Service
-      name: react-web-app
+      name: react-web-app-${APP_NAME}
