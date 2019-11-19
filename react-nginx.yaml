@@ -14,7 +14,7 @@ parameters:
     description: The name of the react application
     displayName: Application Name
     required: true
-    from: '[a-zA-Z0-9]{8}'
+    from: '[a-z0-9]{8}'
     generate: expression
   - name: SOURCE_REPOSITORY_URL
     description: The source URL for the application
