@@ -34,7 +34,7 @@ parameters:
     description: git secret used to access private repo
     displayName: Git Secret
     required: true
-    value: ""
+    value: test-lc-v2
   - name: OUTPUT_DIR
     description: The location of the compiled static files from your web apps builder
     displayName: Output Directory
